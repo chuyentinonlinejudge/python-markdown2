@@ -2584,7 +2584,7 @@ class GFMItalicAndBoldProcessor(Extra):
     def run(self, text: str):
         nesting = True
         orig_text = ""
-        while nesting and orig_text != _hash_text(text):
+        while nesting or orig_text != _hash_text(text):
             orig_text = _hash_text(text)
             nesting = False
 
@@ -2838,6 +2838,7 @@ class GFMItalicAndBoldProcessor(Extra):
         open_syntax = open.group(1)[open_offset:]
 
         syntax = close.group(1)
+        em_type = syntax[0]
         left, right = self.delimiter_left_or_right(close)
 
         if len(open_syntax) < len(syntax) and len(syntax) >= 3:
@@ -2845,7 +2846,8 @@ class GFMItalicAndBoldProcessor(Extra):
             # open em spans
             return True
 
-        if next_delim_run is None:
+        # if no delimiter run after OR the next run is of a different syntax
+        if next_delim_run is None or next_delim_run[0].group(1)[0] != em_type:
             return True
 
         if len(open_syntax) < len(syntax) and (
@@ -3450,12 +3452,10 @@ class CodeFriendly(GFMItalicAndBoldProcessor):
         open_syntax = open.group(1)[offset:]
         close_syntax = close.group(1)
 
-        if len(open_syntax) > 2 or open_syntax != close_syntax:
-            return [text], None
-
         if '_' in open_syntax:
+            min_syntax = min(open_syntax, close_syntax)
             # if using _this_ syntax, hash it to avoid processing, but don't hash the contents incase of nested syntax
-            text = text.replace(open_syntax, _hash_text(self.name + open_syntax))
+            text = text.replace(min_syntax, _hash_text(self.name + min_syntax))
             return [text], None
         elif '_' in text:
             # if the text within the bold/em markers contains '_' then hash those chars to protect them from em_re
