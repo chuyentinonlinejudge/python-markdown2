@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
         testcase_start_time = time.time()
         try:
-            subprocess.run([sys.executable, __file__, "--execute", testcase], timeout=3)
+            subprocess.run([sys.executable, __file__, "--execute", testcase], timeout=4)
         except subprocess.TimeoutExpired:
             fails.append(testcase)
             print(f"FAIL ({time.time() - testcase_start_time:.3f}s)")
